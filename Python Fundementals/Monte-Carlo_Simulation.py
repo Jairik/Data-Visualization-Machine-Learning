@@ -32,6 +32,8 @@ for j in range(2, 13):
 propabilities_df = pd.DataFrame(list(propabilities.items()), columns=['Total', 'Probability'])
 title = "Probabilities for " + str(n) + " rolls"
 
+
+
 print('\n', title)
 print(propabilities_df.to_string(index=False))
 print() #Empty Line
