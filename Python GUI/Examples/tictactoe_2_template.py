@@ -1,3 +1,5 @@
+'''I was so incredibyl tired when first seeing, look bac through'''
+
 import sys
 from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QBrush
 from PyQt5.QtCore import Qt
@@ -32,7 +34,7 @@ class TicTacToe(QWidget):
     qp.begin(self)
     
     # Clear the background
-    qp.fillRect(event.rext(), Qt.white)
+    qp.fillRect(event.rect(), Qt.white)
     
     qp.setPen(blackPen)
     
@@ -40,14 +42,27 @@ class TicTacToe(QWidget):
         for c in range(len(self.__board[r])):
           qp.drawRect(GRID_ORIGINX + c * CELL_SIZE, GRID_ORIGINY + \
             r * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+          if self.__board[r][c] == 0:
+              qp.drawLine(GRID_ORIGINX + c * CELL_SIZE + 3, GRID_ORIGINY \
+                          + CELL_SIZE + r * 3, GRID_ORIGINX + c * CELL_SIZE \
+                              + CELL_SIZE - 3, GRID_ORIGINY + r * CELL_SIZE + CELL_SIZE - 3)
     qp.end()
 
+
+#We must identify click position and whhat box it was associated with
   def mousePressEvent(self, event):
-    pass
-    #figure out what cell they clicked in
-    #retrieve that cell from the board
-
-
+    if self.__winner is True:
+        return
+    row = (event.y() - GRID_ORIGINY) // CELL_SIZE
+    col = (event.x() - GRID_ORIGINX) // CELL_SIZE
+    
+    if 0 <= row < CELL_COUNT and 0 <= col < CELL_COUNT:
+        if self.__board[row][col] == -1:
+            self.__board[row][col] = self.__turn
+            self.__turn = self.__turn + 1 % 2
+            print(self.__board) #Testing since drawings aren't in yet.
+    self.update()
+    
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)
