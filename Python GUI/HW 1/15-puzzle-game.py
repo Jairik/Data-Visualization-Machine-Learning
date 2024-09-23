@@ -3,11 +3,14 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt
+from functools import partial  # Passing extra parameters through clicked buttons
 import sys
 import random as rand  # Shuffling board
 
 # Global Constants
 BOARD_SIZE = 4
+# Global Variables
+buttons = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)] # Empty 2d list that will hold the buttons
 
 '''Determine whether board is solvable
 Parameters: The board list
@@ -32,20 +35,22 @@ def not_solvable(b):
 
 
 '''Helper function that checks if the board is solved
-Parameters: The board list
 Returns: Whether the board was solved (True if solved, False if not)'''
-def is_solved(b):
-    return b == [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
+def is_solved(board):
+    return board == [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 0]]
 
-'''Helper function that returns the index of a given number
-Parameters: The board list, value to find
-Returns: A pair (row, col)'''
-def find_num(board, val):
-    for i, row in enumerate(board):
-        if val in row:
-            j = row.index(val)
-            return i, j
-    return None  # Should never happen
+
+'''Helper function that returns if the provided index is 4-way adjacent to the blank
+Parameters: i, j
+Returns: Wether the given index is adjacent to blank'''
+def is_adjacent(i, j, b_pos):
+    if i == b_pos[0] and abs(j - b_pos[1]) == 1:  # In the same row and 1 tile apart
+        return True
+    elif j == b_pos[1] and abs(i - b_pos[0]) == 1:  # In the same column and 1 tile apart
+        return True
+    else:
+        return False
+
 
 '''Makes the board, ensuring that it is solvable
 Parameters: None
@@ -70,6 +75,9 @@ def main():
     
     # Making a move counter to display on window
     m_counter = 0
+    
+    # Making variable to hold the blank position for easy comparison
+    b_pos = (-1, -1)  # Initialized with signal values
     
     # Creating grid layouts
     top_grid = QGridLayout()  # Top grid for displaying moves made and instructions button
@@ -104,23 +112,24 @@ def main():
     for i in range(0, BOARD_SIZE):
         for j in range(0, BOARD_SIZE):
             if board[i][j] == 0:
-                grid.addWidget(QPushButton(' '), i, j)
-                grid.itemAtPosition(i, j).widget().clicked.connect(
-                    lambda: on_blank_button_click(board, grid)  # Pass parameters to function reference
-                )
+                button = QPushButton(' ')
+                b_pos = (i, j)
             else:
-                grid.addWidget(QPushButton(f'{board[i][j]}'), i, j)
+                button = (QPushButton(f'{board[i][j]}'))
             
-    
-    
+            buttons[i][j] = button
+            button.clicked.connect(partial(on_num_button_click, i, j, grid))  # Pass positional paramters to function
+            grid.addWidget(button, i, j)
+            
     # Show the window
     window.setLayout(root_layout)
     window.show()
     sys.exit(app.exec_())
 
+# Potentially not needed
 '''Blank Button Click Method - Called after clicking the blank button, turns on the event listeners
 for the appropriate number buttons
-Parameters: The board (b), grid layout (g), and pair of the row of the blank and column of the blank'''
+Parameters: The board (b), grid layout (g), and pair of the row of the blank and column of the blank
 def on_blank_button_click(b, g):
     i, j = find_num(b, 0)  # Find position of blank space
     print(f"Blank clicked: {i, j}")
@@ -141,40 +150,31 @@ def on_blank_button_click(b, g):
     if j > 3:  # If the blank can move up
         g.itemAtPosition(i, j+1).widget().clicked.connect(
             lambda: on_num_button_click(b, g, i, j)
-        )
+        ) '''
     
         
-'''Number Button Click Method - Turns off all button listeners and swaps numbers
-Parameters: board (b), grid layout (g), row of blank (i), col of blaml (j)'''
-def on_num_button_click(b, g, i, j):
-    # Get the current button & it's number
-    clicked_button = sender()
-    clicked_button_number = int(clicked_button.text())
-    
-    # Turn off all number button listeners
-    if 0 < i:  # If the blank can move left
-        g.itemAtPosition(i-1, j).widget().clicked.disconnect()
-    if i > 3:  # If the blank can move right
-        g.itemAtPosition(i+1, j).widget().clicked.disconnect()
-    if 0 < j:  # If the blank can move down
-        g.itemAtPosition(i, j-1).widget().clicked.disconnect()
-    if j > 3:  # If the blank can move up
-        g.itemAtPosition(i, j+1).widget().clicked.disconnect()
+'''Number Button Click Method - Checks if the current button is adjacent to the blank button.
+If it is, swaps values in board and updates GUI 
+Parameters: i (row of button clicked), j (column of button clicked), board, b_pos (blank button position)'''
+def on_num_button_click(i, j, board, b_pos):
+    # print('Blank x, y: ', b_pos[0], ' ', b_pos[1])
+    if is_adjacent(i, j):
+        # Get the current button & it's number
+        clicked_button_number = board[i][j]
+            
+        # Swap the number values on the grid
+        buttons[b_pos[0]][b_pos[1]].setText(clicked_button_number)  # Move number to blank
+        buttons[i][j].setText(' ')  # Move blank to last clicked tile
         
-    # Swap the number values on the grid
-    g.itemAtPosition(i, j).widget().setText(clicked_button_number)  # Move number to blank
-    clicked_button.setText(0)  # Move blank to number
-    
-    # Swap the number values on the board
-    x, y = find_num(b, clicked_button_number)
-    print(f"X, y: {x}, {y}")
-    b[x][y] = 0
-    print(f"i, j: {i}, {j}")
-    b[i][j] = clicked_button_number
-    
-    # Check for win
-    if is_solved():
-        pass #placeholder for now
+        # Swap the number values on the board
+        board[i][j] = 0
+        print(f"i, j: {i}, {j}")
+        board[b_pos[0]][b_pos[1]] = clicked_button_number
+        b_pos = (i, j)
+        
+        # Check for win
+        if is_solved():
+            pass #placeholder for now
     
 
 
