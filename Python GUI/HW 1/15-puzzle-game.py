@@ -11,7 +11,8 @@ import random as rand  # Shuffling board
 BOARD_SIZE = 4
 # Global Variables
 buttons = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)] # Empty 2d list that will hold the buttons
-b_pos = (-1, 1)
+b_pos = (-1, 1)  # Current space of the blank, removes need for finding during every successful swap
+move_count = 0  # Move counter to be displayed 
 
 '''Determine whether board is solvable
 Parameters: The board list
@@ -70,25 +71,20 @@ def make_board():
 
 ''' GUI interface (PYQT5) & Intra-game Logic '''    
 def main():
-    global b_pos  # Declare that b_pos as global for correct referencing
+    global b_pos, move_count  # Declare that b_pos as global for correct referencing
     
     # Getting the solvable board
     board = make_board()
     
-    # Making a move counter to display on window
-    m_counter = 0
-    
-    # Making variable to hold the blank position for easy comparison
-    b_pos = (-1, -1)  # Initialized with signal values
-    
     # Creating grid layouts
     top_grid = QGridLayout()  # Top grid for displaying moves made and instructions button
+    top_grid.setRowStretch(0, 1)  # Allow for row to stretch, improving GUI 
     grid = QGridLayout()
     
     # Creating master layout to store on root window
     root_layout = QVBoxLayout()
-    root_layout.addLayout(top_grid)
-    root_layout.addLayout(grid)
+    root_layout.addLayout(top_grid, 2)
+    root_layout.addLayout(grid, 1)
     
     # Configuring root window
     app = QApplication([])
@@ -96,17 +92,18 @@ def main():
     icon = QIcon("15-puzzle-game-image.jpg")  # Custom icon for window
     window.setWindowIcon(icon)
     window.setWindowTitle("JJ's 15 Puzzle Game")
-    window.setGeometry(100, 100, 800, 800) 
-    window.setStyleSheet("background-color: #1c1c1c; color: white; font-family: Tahoma; font-size: 18px;")
+    window.setGeometry(100, 100, 1200, 1200) 
+    window.setStyleSheet("background-color: #1c1c1c;")
     
     # Add label displaying move count
     moves_label = QLabel()
-    moves_label.setText(f"Moves Made: {m_counter}")
-    moves_label.setFont(QFont("Arial", 16))
+    moves_label.setText("Welcome!")
+    moves_label.setStyleSheet("color: white; font-size: 45px; font-family: Tahoma;")
     top_grid.addWidget(moves_label, 0, 0)
     
     # Adding a button that displays a pop-up with instructions
     instructions_button = QPushButton("How to play")
+    instructions_button.setStyleSheet("background-color: #333333; color: white; font-size: 30px; font-family: Tahoma;")
     instructions_button.clicked.connect(on_help_button_click)
     top_grid.addWidget(instructions_button, 0, 1)
     
@@ -115,12 +112,15 @@ def main():
         for j in range(0, BOARD_SIZE):
             if board[i][j] == 0:
                 button = QPushButton(' ')
+                button.setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # #693800
                 b_pos = (i, j)
             else:
                 button = (QPushButton(f'{board[i][j]}'))
+                button.setStyleSheet("background-color: #333333; color: white; font-size: 42px;")
             
             buttons[i][j] = button
-            button.clicked.connect(partial(on_num_button_click, i, j, board))  # Pass positional paramters to function
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # Allow for buttons to expand
+            button.clicked.connect(partial(on_num_button_click, i, j, board, moves_label))  # Pass positional paramters to function
             grid.addWidget(button, i, j)
             
     # Show the window
@@ -132,15 +132,17 @@ def main():
 '''Number Button Click Method - Checks if the current button is adjacent to the blank button.
 If it is, swaps values in board and updates GUI 
 Parameters: i (row of button clicked), j (column of button clicked), board, b_pos (blank button position)'''
-def on_num_button_click(i, j, board):
-    global b_pos
+def on_num_button_click(i, j, board, moves_label):
+    global b_pos, move_count
     if is_adjacent(i, j, b_pos):
         # Get the current button & it's number
         clicked_button_number = board[i][j]
             
         # Swap the number values on the grid
         buttons[b_pos[0]][b_pos[1]].setText(str(clicked_button_number))  # Move number to blank
+        buttons[b_pos[0]][b_pos[1]].setStyleSheet("background-color: #333333; color: white; font-size: 42px;")  # Give new num button formatting
         buttons[i][j].setText(' ')  # Move blank to last clicked tile
+        buttons[i][j].setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # Give new button blank formatting
         
         # Swap the number values on the board
         board[i][j] = 0
@@ -148,11 +150,14 @@ def on_num_button_click(i, j, board):
         board[b_pos[0]][b_pos[1]] = int(clicked_button_number)
         b_pos = (i, j)
         
+        # Update the move count
+        move_count += 1
+        moves_label.setText(f"Moves Made: {move_count}")
+        
         # Check for win
         if is_solved(board):
             pass #placeholder for now
     
-
 
 '''Help Button Click Method - Displays directions for the game'''
 def on_help_button_click():
@@ -161,13 +166,13 @@ def on_help_button_click():
         Goal: Slide the puzzle pieces together to order the numbers from 1-15, with the bottom right tile being an empty space. \n \
         How to play: Start by clicking o an adjacent number to swap with the empty space. Once the game is complete and you won, a message will be displayed. \n \
         Move Counter: This will display how many moves you have made in the current game. An optional goal is to minimize these moves."
-    #Making a message box and displaying it
+    # Making a message box and displaying it
     message = QMessageBox()
-    message.setStyleSheet("background-color: #1c1c1c; color: white; font-family: Courier New; font-size: 14px;")
+    message.setStyleSheet("background-color: #333333; color: white; font-family: Courier New; font-size: 24px;")
     message.setText(m)
     message.setWindowTitle("15-Game Instructions")
-    message.resize(800, 800)
     message.show()
+    message.resize(800, 600)
     message.exec_()
    
    
