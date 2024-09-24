@@ -11,6 +11,7 @@ import random as rand  # Shuffling board
 BOARD_SIZE = 4
 # Global Variables
 buttons = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)] # Empty 2d list that will hold the buttons
+b_pos = (-1, 1)
 
 '''Determine whether board is solvable
 Parameters: The board list
@@ -69,7 +70,8 @@ def make_board():
 
 ''' GUI interface (PYQT5) & Intra-game Logic '''    
 def main():
-
+    global b_pos  # Declare that b_pos as global for correct referencing
+    
     # Getting the solvable board
     board = make_board()
     
@@ -118,7 +120,7 @@ def main():
                 button = (QPushButton(f'{board[i][j]}'))
             
             buttons[i][j] = button
-            button.clicked.connect(partial(on_num_button_click, i, j, grid))  # Pass positional paramters to function
+            button.clicked.connect(partial(on_num_button_click, i, j, board))  # Pass positional paramters to function
             grid.addWidget(button, i, j)
             
     # Show the window
@@ -126,54 +128,28 @@ def main():
     window.show()
     sys.exit(app.exec_())
 
-# Potentially not needed
-'''Blank Button Click Method - Called after clicking the blank button, turns on the event listeners
-for the appropriate number buttons
-Parameters: The board (b), grid layout (g), and pair of the row of the blank and column of the blank
-def on_blank_button_click(b, g):
-    i, j = find_num(b, 0)  # Find position of blank space
-    print(f"Blank clicked: {i, j}")
-    
-    #Turning on button click listeners for adjacent buttons
-    if 0 < i:  # If the blank can move left
-        g.itemAtPosition(i-1, j).widget().clicked.connect(
-            lambda: on_num_button_click(b, g, i, j)
-        )
-    if i > 3:  # If the blank can move right
-        g.itemAtPosition(i+1, j).widget().clicked.connect(
-            lambda: on_num_button_click(b, g, i, j)
-        )
-    if 0 < j:  # If the blank can move down
-        g.itemAtPosition(i, j-1).widget().clicked.connect(
-            lambda: on_num_button_click(b, g, i, j)
-        )
-    if j > 3:  # If the blank can move up
-        g.itemAtPosition(i, j+1).widget().clicked.connect(
-            lambda: on_num_button_click(b, g, i, j)
-        ) '''
-    
         
 '''Number Button Click Method - Checks if the current button is adjacent to the blank button.
 If it is, swaps values in board and updates GUI 
 Parameters: i (row of button clicked), j (column of button clicked), board, b_pos (blank button position)'''
-def on_num_button_click(i, j, board, b_pos):
-    # print('Blank x, y: ', b_pos[0], ' ', b_pos[1])
-    if is_adjacent(i, j):
+def on_num_button_click(i, j, board):
+    global b_pos
+    if is_adjacent(i, j, b_pos):
         # Get the current button & it's number
         clicked_button_number = board[i][j]
             
         # Swap the number values on the grid
-        buttons[b_pos[0]][b_pos[1]].setText(clicked_button_number)  # Move number to blank
+        buttons[b_pos[0]][b_pos[1]].setText(str(clicked_button_number))  # Move number to blank
         buttons[i][j].setText(' ')  # Move blank to last clicked tile
         
         # Swap the number values on the board
         board[i][j] = 0
         print(f"i, j: {i}, {j}")
-        board[b_pos[0]][b_pos[1]] = clicked_button_number
+        board[b_pos[0]][b_pos[1]] = int(clicked_button_number)
         b_pos = (i, j)
         
         # Check for win
-        if is_solved():
+        if is_solved(board):
             pass #placeholder for now
     
 
@@ -183,7 +159,7 @@ def on_help_button_click():
     # Help instructions string
     m = " ---------------- Instructions ---------------- \n \
         Goal: Slide the puzzle pieces together to order the numbers from 1-15, with the bottom right tile being an empty space. \n \
-        How to play: Start by clicking on the empty space, followed by an adjacent number to swap. Once the game is complete and you won, a message will be displayed. \n \
+        How to play: Start by clicking o an adjacent number to swap with the empty space. Once the game is complete and you won, a message will be displayed. \n \
         Move Counter: This will display how many moves you have made in the current game. An optional goal is to minimize these moves."
     #Making a message box and displaying it
     message = QMessageBox()
