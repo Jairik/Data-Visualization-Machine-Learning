@@ -1,4 +1,4 @@
-''' 15-puzzle (sliding puzzle game) - JJ McCauley - Last Update 9/16/24'''
+''' 15-puzzle (sliding puzzle game) - JJ McCauley - Last Update 9/24/24 '''
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -13,6 +13,7 @@ BOARD_SIZE = 4
 buttons = [[None for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)] # Empty 2d list that will hold the buttons
 b_pos = (-1, 1)  # Current space of the blank, removes need for finding during every successful swap
 move_count = 0  # Move counter to be displayed 
+grid = QGridLayout()  # Grid which will hold the buttons
 
 '''Determine whether board is solvable
 Parameters: The board list
@@ -71,15 +72,16 @@ def make_board():
 
 ''' GUI interface (PYQT5) & Intra-game Logic '''    
 def main():
-    global b_pos, move_count  # Declare that b_pos as global for correct referencing
+    global b_pos, move_count, grid  # Declare that b_pos as global for correct referencing
     
     # Getting the solvable board
-    board = make_board()
+    ''' HARDCODING FOR TESTING PURPOSES (testing win check)
+    board = make_board()'''
+    board = [[1, 0, 2, 3], [5, 6, 7, 4], [9, 10, 11, 8], [13, 14, 15, 12]]
     
     # Creating grid layouts
     top_grid = QGridLayout()  # Top grid for displaying moves made and instructions button
     top_grid.setRowStretch(0, 1)  # Allow for row to stretch, improving GUI 
-    grid = QGridLayout()
     
     # Creating master layout to store on root window
     root_layout = QVBoxLayout()
@@ -112,11 +114,11 @@ def main():
         for j in range(0, BOARD_SIZE):
             if board[i][j] == 0:
                 button = QPushButton(' ')
-                button.setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # #693800
+                button.setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # Set blank button formatting
                 b_pos = (i, j)
             else:
                 button = (QPushButton(f'{board[i][j]}'))
-                button.setStyleSheet("background-color: #333333; color: white; font-size: 42px;")
+                button.setStyleSheet("background-color: #333333; color: white; font-size: 42px;")  # Set Number buttons formatting
             
             buttons[i][j] = button
             button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # Allow for buttons to expand
@@ -127,8 +129,7 @@ def main():
     window.setLayout(root_layout)
     window.show()
     sys.exit(app.exec_())
-
-        
+     
 '''Number Button Click Method - Checks if the current button is adjacent to the blank button.
 If it is, swaps values in board and updates GUI 
 Parameters: i (row of button clicked), j (column of button clicked), board, b_pos (blank button position)'''
@@ -146,7 +147,6 @@ def on_num_button_click(i, j, board, moves_label):
         
         # Swap the number values on the board
         board[i][j] = 0
-        print(f"i, j: {i}, {j}")
         board[b_pos[0]][b_pos[1]] = int(clicked_button_number)
         b_pos = (i, j)
         
@@ -156,9 +156,9 @@ def on_num_button_click(i, j, board, moves_label):
         
         # Check for win
         if is_solved(board):
-            pass #placeholder for now
+            p_again = is_winner(moves_label)
+            
     
-
 '''Help Button Click Method - Displays directions for the game'''
 def on_help_button_click():
     # Help instructions string
@@ -168,13 +168,82 @@ def on_help_button_click():
         Move Counter: This will display how many moves you have made in the current game. An optional goal is to minimize these moves."
     # Making a message box and displaying it
     message = QMessageBox()
-    message.setStyleSheet("background-color: #333333; color: white; font-family: Courier New; font-size: 24px;")
+    message.setStyleSheet("background-color: #333333; color: white; font-family: Tahoma; font-size: 24px;")
     message.setText(m)
     message.setWindowTitle("15-Game Instructions")
     message.show()
-    message.resize(800, 600)
+    #message.resize(800, 600)
     message.exec_()
    
+   
+'''Win Dialouge Box - Shows win message and asks the user to play again 
+Parameters: moves_label (will be changed in nextgame() function if user decides to play again)
+Returns: Whether to player would like to play again'''
+def is_winner(moves_label):
+    # Set all Cells to green, indicating winner
+    for b_list in buttons:
+        for b in b_list:
+            b.setStyleSheet("background-color: #015701; color: white; font-family: Tahoma; font-size: 42px;")
+    
+    # Win Dialouge Box
+    m = f"YOU WIN!!!\nMoves: {move_count}"
+     
+    # Making a message box and displaying it
+    win_message = QMessageBox()
+    win_message.setStyleSheet("background-color: #333333; color: #c46a00; font-family: Tahoma; font-size: 24px;")
+    win_message.setText(m)
+    win_message.setWindowTitle("WINNER!")
+ 
+    # Make "Play Again" and "Quit" Buttons
+    play_again_button = QPushButton("Play Again")
+    play_again_button.setStyleSheet("background-color: #4f2b01; color: #cfcccc; font-family: Tahoma; font-size: 24px;")
+    quit_button = QPushButton("Quit")
+    quit_button.setStyleSheet("background-color: #333333; color: #6b6a6a; font-family: Tahoma; font-size: 24px;")
+    
+    # Add buttons to message box
+    win_message.addButton(play_again_button, QMessageBox.YesRole)
+    win_message.addButton(quit_button, QMessageBox.NoRole)
+    
+    # Wait for input from the user
+    response = win_message.exec()
+    
+    # Assign roles for each button (responses will be passed into next_game helper function)
+    if win_message.clickedButton() == play_again_button:
+        next_game(moves_label, True)
+    elif win_message.clickedButton() == quit_button:
+        next_game(moves_label, False)
+    
+    # Display the window
+    win_message.show()
+    win_message.resize(800, 600)
+
+
+'''Next Game Function - Begins new game or exits program, based on user's input
+Parameters: moves_label (updates counter), p_again (whether user would like to play again)'''
+def next_game(moves_label, p_again):
+    global grid, b_pos
+    if p_again:  # Set up the board and reset counter for next game
+        move_count = 0
+        moves_label.setText(str(move_count))
+        board = make_board()  # Generate new, solvable board
+        # Adding numbers to grid (unsure if I need to re-declare properties)
+        for i in range(0, BOARD_SIZE):
+            for j in range(0, BOARD_SIZE):
+                if board[i][j] == 0:
+                    button = QPushButton(' ')
+                    button.setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")
+                    b_pos = (i, j)
+                else:
+                    button = (QPushButton(f'{board[i][j]}'))
+                    button.setStyleSheet("background-color: #333333; color: white; font-size: 42px;")
+                
+                buttons[i][j] = button
+                button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                button.clicked.connect(partial(on_num_button_click, i, j, board, moves_label))
+                grid.addWidget(button, i, j)
+    else:  
+        QApplication.quit()  # End event loop and close application
+
    
 # Good practice
 if __name__ == '__main__':
