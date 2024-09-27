@@ -46,10 +46,21 @@ def is_solved(board):
 '''Helper function that returns if the provided index is 4-way adjacent to the blank
 Parameters: i, j
 Returns: Wether the given index is adjacent to blank'''
-def is_adjacent(i, j, b_pos):
+def is_directly_adjacent(i, j, b_pos):
     if i == b_pos[0] and abs(j - b_pos[1]) == 1:  # In the same row and 1 tile apart
         return True
     elif j == b_pos[1] and abs(i - b_pos[0]) == 1:  # In the same column and 1 tile apart
+        return True
+    else:
+        return False
+
+'''Helper function that returns if the provided index is in the same row or col as adjacent blank
+Parameters: i, j, b_pos (blank position)
+Returns: Wether the given index is in the same row or col to blank'''
+def in_adjacent_row_col(i, j, b_pos):
+    if i == b_pos[0] and j == b_pos[1]:  # Base case, clicking on the blank shouldn't do anything
+        return False
+    elif i == b_pos[0] or j == b_pos[1]:  # In the same row or col
         return True
     else:
         return False
@@ -75,8 +86,8 @@ def main():
     global b_pos, move_count, grid  # Declare that b_pos as global for correct referencing
     
     # Getting the solvable board
-    ''' HARDCODING FOR TESTING PURPOSES (testing win check)
-    board = make_board()'''
+    ''' HARDCODING FOR TESTING PURPOSES (testing win check)'''
+    #board = make_board()
     board = [[1, 0, 2, 3], [5, 6, 7, 4], [9, 10, 11, 8], [13, 14, 15, 12]]
     
     # Creating grid layouts
@@ -135,20 +146,23 @@ If it is, swaps values in board and updates GUI
 Parameters: i (row of button clicked), j (column of button clicked), board, b_pos (blank button position)'''
 def on_num_button_click(i, j, board, moves_label):
     global b_pos, move_count
-    if is_adjacent(i, j, b_pos):
+    if in_adjacent_row_col(i, j, b_pos):
         # Get the current button & it's number
         clicked_button_number = board[i][j]
             
         # Swap the number values on the grid
-        buttons[b_pos[0]][b_pos[1]].setText(str(clicked_button_number))  # Move number to blank
-        buttons[b_pos[0]][b_pos[1]].setStyleSheet("background-color: #333333; color: white; font-size: 42px;")  # Give new num button formatting
-        buttons[i][j].setText(' ')  # Move blank to last clicked tile
-        buttons[i][j].setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # Give new button blank formatting
-        
-        # Swap the number values on the board
-        board[i][j] = 0
-        board[b_pos[0]][b_pos[1]] = int(clicked_button_number)
-        b_pos = (i, j)
+        if is_directly_adjacent(i, j, b_pos):  # Directly adjacent
+            buttons[b_pos[0]][b_pos[1]].setText(str(clicked_button_number))  # Move number to blank
+            buttons[b_pos[0]][b_pos[1]].setStyleSheet("background-color: #333333; color: white; font-size: 42px;")  # Give new num button formatting
+            buttons[i][j].setText(' ')  # Move blank to last clicked tile
+            buttons[i][j].setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # Give new button blank formatting
+            # Swap the number values on the board
+            board[i][j] = 0
+            board[b_pos[0]][b_pos[1]] = int(clicked_button_number)
+            b_pos = (i, j)  
+        else:  # Adjacent by row or col, must slide peices over
+            shift_board(i, j, board)  # Call helper function
+            update_buttons(board)
         
         # Update the move count
         move_count += 1
@@ -158,7 +172,49 @@ def on_num_button_click(i, j, board, moves_label):
         if is_solved(board):
             p_again = is_winner(moves_label)
             
-    
+'''Shift Board - Shifts the board at the given index
+ Parameters: i (row of click), j (col of click), b_pos (tuple of blankl position), board'''
+def shift_board(i, j, board):
+    global b_pos
+    if i == b_pos[0]:  # Shift row
+        if j < b_pos[1]:  # Shift right
+            for num in range(b_pos[1], j, -1):
+                board[i][num] = board[i][num-1]
+            board[i][j] = 0
+            
+        else:  # Shift left
+            for num in range(b_pos[1], j):
+                board[i][num] = board[i][num+1]
+            board[i][j] = 0
+            
+    else:  # Shift col
+        if i > b_pos[1]:  # Shift up
+            for num in range(b_pos[0], i):
+                board[num][j] = board[num+1][j]
+            board[i][j] = 0
+            
+        else:  # Shift down
+            for num in range(b_pos[0], i, -1):
+                board[num][j] = board[num-1][j]
+            board[i][j] = 0   
+                     
+    b_pos = (i, j)  # Update blank space
+
+
+'''Update Buttons - Syncs the buttons with the board
+Parameters: board 2d list'''
+def update_buttons(board):
+    print(board)
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            if board[i][j] == 0:
+                buttons[i][j].setText(' ')  # Move blank to last clicked tile
+                buttons[i][j].setStyleSheet("background-color: #4f2b01; color: black; font-size: 42px;")  # Give new button blank formatting
+            else:
+                buttons[i][j].setText(str(board[i][j])) 
+                buttons[i][j].setStyleSheet("background-color: #333333; color: white; font-size: 42px;")  # Give num button formatting
+
+   
 '''Help Button Click Method - Displays directions for the game'''
 def on_help_button_click():
     # Help instructions string
