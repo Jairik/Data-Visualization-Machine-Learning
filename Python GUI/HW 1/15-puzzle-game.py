@@ -188,7 +188,7 @@ def shift_board(i, j, board):
             board[i][j] = 0
             
     else:  # Shift col
-        if i > b_pos[1]:  # Shift up
+        if i > b_pos[0]:  # Shift up
             for num in range(b_pos[0], i):
                 board[num][j] = board[num+1][j]
             board[i][j] = 0
