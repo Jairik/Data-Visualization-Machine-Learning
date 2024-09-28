@@ -83,12 +83,11 @@ def make_board():
 
 ''' GUI interface (PYQT5) & Intra-game Logic '''    
 def main():
-    global b_pos, move_count, grid  # Declare that b_pos as global for correct referencing
+    global b_pos, move_count, grid  # Declare b_pos as global for correct referencing
     
     # Getting the solvable board
-    ''' HARDCODING FOR TESTING PURPOSES (testing win check)'''
     #board = make_board()
-    board = [[1, 0, 2, 3], [5, 6, 7, 4], [9, 10, 11, 8], [13, 14, 15, 12]]
+    board = [[1, 0, 2, 3], [5, 6, 7, 4], [9, 10, 11, 8], [13, 14, 15, 12]]  # Hardcoded test case
     
     # Creating grid layouts
     top_grid = QGridLayout()  # Top grid for displaying moves made and instructions button
@@ -102,8 +101,8 @@ def main():
     # Configuring root window
     app = QApplication([])
     window = QWidget()
-    icon = QIcon("15-puzzle-game-image.jpg")  # Custom icon for window
-    window.setWindowIcon(icon)
+    #icon = QIcon("15-puzzle-game-image.png")  # Custom icon for window
+    #window.setWindowIcon(icon)
     window.setWindowTitle("JJ's 15 Puzzle Game")
     window.setGeometry(100, 100, 1200, 1200) 
     window.setStyleSheet("background-color: #1c1c1c;")
