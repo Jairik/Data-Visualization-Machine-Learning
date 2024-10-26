@@ -2,7 +2,7 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, cross_val_score  # Preparing data & cross validating
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV  # Preparing data, cross validating, parameter optimization
 from sklearn.tree import DecisionTreeClassifier  # DT
 from sklearn.neighbors import KNeighborsClassifier  # KNN
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report  # Confusion Matrix for analyzing results
@@ -22,26 +22,32 @@ y_test = y
 knn_selftest = KNeighborsClassifier(n_neighbors=5)
 knn_selftest.fit(x, y)
 y_pred = knn_selftest.predict(x_test)
-print("KNN Self Test Accuracy:", knn_selftest.score(x, y), "\nClassification Report: ", classification_report(y_pred, y_test))
+print("KNN Self Test Accuracy:", knn_selftest.score(x, y), "\nClassification Report:\n", classification_report(y_pred, y_test))
 
 # Self-testing and printing classification report for Decision Tree
 dt_selftest = DecisionTreeClassifier(criterion='entropy')
 dt_selftest.fit(x, y)
 y_pred = dt_selftest.predict(x_test)
-print("Decision Tree Self Test Accuracy:", dt_selftest.score(x, y), "\nClassification Report: ", classification_report(y_pred, y_test))
+print("Decision Tree Self Test Accuracy:", dt_selftest.score(x, y), "\nClassification Report:\n", classification_report(y_pred, y_test))
 
 ''' Independent-tests '''
 # Re-training and testing KNN
 knn = KNeighborsClassifier(n_neighbors=5)
 knn.fit(x_train, y_train)
 y_pred = knn.predict(x_test)
-print("KNN Independent Test Accuracy: ", knn.score(x_test, y_test), "\nClassification Report: ", classification_report(y_pred, y_test), "\n", confusion_matrix(y_pred, y_test))
+print("KNN Independent Test Accuracy: ", knn.score(x_test, y_test), "\nClassification Report:\n", classification_report(y_pred, y_test), "\n", confusion_matrix(y_pred, y_test))
+''' Utilizing scikit-learn's grid search to test different model parameters '''
+param_grid = [
+    {'n_neighbors':[3, 4, 6, 7]}, {'weights': ['uniform', 'distance']}
+]
+grid_search = GridSearchCV(esitmator=knn, param_grid=param_grid, cv=5, scoring='accuracy')
+grid_search.fit(x_train, y_train)
 
 # Re-training and testing DT
 dt = DecisionTreeClassifier(criterion='entropy')
 dt.fit(x_train, y_train)
 y_pred = dt.predict(x_test)
-print("Decision Tree Independent Test: ", dt.score(x_test, y_test), "\nClassification Report: ", classification_report(y_pred, y_test), "\n", confusion_matrix(y_pred, y_test))
+print("Decision Tree Independent Test: ", dt.score(x_test, y_test), "\nClassification Report:\n", classification_report(y_pred, y_test), "\n", confusion_matrix(y_pred, y_test))
 
 
 ''' Optimizing Models '''
@@ -53,7 +59,7 @@ print("Decision Tree Independent Test: ", dt.score(x_test, y_test), "\nClassific
 #     knn_test_w.fit(x_train, y_train)
 #     print(f"KNN {i} uniform weights: ", (cross_val_score(knn_test_n, x_test, y_test)).mean()) # folds default to 5 
 #     print(f"KNN {i} distance weights: ", (cross_val_score(knn_test_w, x_test, y_test)).mean(), "\n") 
-# Best results were accomplished at k=3 and distance weights (.98333334) 
+# Best results were accomplished at k=3 and distance weights (.98333334)
 
 knn_final = KNeighborsClassifier(n_neighbors=3, weights='distance', n_jobs=-1)
 
@@ -82,7 +88,7 @@ print(f"KNN accuracy of {cross_val_score(knn_final, x, y).mean()} vs Decision Tr
 knn_final.fit(x_train, y_train)
 y_pred = knn_final.predict(x_test)
 print(f"Final KNN Accuracy: {knn_final.score(x_test, y_test)}")
-print(f"Final KNN Classification Report: {classification_report(y_pred, y_test)}")
+print(f"Final KNN Classification Report:\n{classification_report(y_pred, y_test)}")
 print("Final KNN Confusion Matrix: ")
 cm = ConfusionMatrixDisplay.from_estimator(knn_final, x_test, y_test)  
 plt.show()
@@ -102,5 +108,4 @@ plt.ylim(94, 100)
 plt.title("KNN Test Size Accuracies")
 plt.xlabel("Test Size (%)")
 plt.ylabel("Accuracy (%)")
-plt
 plt.show()
