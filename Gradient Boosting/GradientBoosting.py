@@ -19,24 +19,24 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=.3, random_s
 # Creating & self testing Gradient Boosting Classifier
 gbmodel = GradientBoostingClassifier()  # Default parameters for now
 gbmodel.fit(x, y)
-print("", gbmodel.score(x, y))
+print("Self Test Score: ", gbmodel.score(x, y))
 
 # Creating test parameters
-learning_rate = [i for i in np.arange(0.0, 4.0, 0.1)]
-n_estimators = [j for j in range(50, 250, 50)]  # Will refine later
-subsample = [s for s in np.arange(0.1, .5, .1)]
+learning_rate = [.1]  # Default parameter to decrease parameter tuning time
+n_estimators = [j for j in range(50, 250, 50)]  # Refine After Initial Test
+subsample = [s for s in np.arange(0.1, .5, .1)]  # Refine After Initial Test
 min_samples_split = [m for m in range(2, 15)]
 min_samples_leaf = [msl for msl in range(1, 15)]
-max_depth = [md for md in range(5, 50)]
+max_depth = [md for md in range(25, 100, 15)]
 max_depth.append(None)
-params = [{
+params = {
     'learning_rate':learning_rate, 'n_estimators':n_estimators, 'subsample':subsample,
     'min_samples_split':min_samples_split, 'min_samples_leaf':min_samples_leaf, 
     'max_depth':max_depth, 'random_state':[42]
-}]
+}
 
 # Creating grid gb model to test parameters
-grid = GridSearchCV(gbmodel, params, cv=10)
+grid = GridSearchCV(gbmodel, params, cv=4, n_jobs=-1, verbose=1)
 grid.fit(x_train, y_train)
 print(f"Best Parameters: {grid.best_params_}")
 best_gbmodel = grid.best_estimator_
