@@ -14,26 +14,29 @@ y = ftdf.iloc[:, -1].values
 # All Features
 # print(x.shape)
 # print(y.shape)
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=.3, random_state=42)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=.2, random_state=42)
 
 # Creating & self testing Gradient Boosting Classifier
 gbmodel = GradientBoostingClassifier()  # Default parameters for now
-gbmodel.fit(x, y)
-print("Self Test Score: ", gbmodel.score(x, y))
+#gbmodel.fit(x, y)
+#print("Self Test Score: ", gbmodel.score(x, y))
 
 # Creating test parameters
 learning_rate = [.1]  # Default parameter to decrease parameter tuning time
-n_estimators = [200] #[j for j in range(195, 205)]
-subsample = [s for s in np.arange(.4, .7, .1)]  # Refined after initial test
-subsample.append(1.0)
+n_estimators = [200]  # [j for j in range(195, 205)]
+subsample = [1.0]  # Default Value
 min_samples_split = [2] #[m for m in range(2, 5)]
 min_samples_leaf = [3] #[msl for msl in range(3, 5)]
-max_depth = [md for md in range(37, 40)]  # Tweaked after test
+max_depth = [md for md in range(37, 45)]  # Tweaked after test
+max_features = [mf for mf in range(5, 15)]
+max_features.append(25)
+max_features.append(None)
+
 max_depth.append(None)
 params = {
     'learning_rate':learning_rate, 'n_estimators':n_estimators, 'subsample':subsample,
     'min_samples_split':min_samples_split, 'min_samples_leaf':min_samples_leaf, 
-    'max_depth':max_depth, 'random_state':[42]
+    'max_depth':max_depth, 'random_state':[42], 'max_features':max_features
 }
 
 # Creating grid gb model to test parameters
@@ -44,5 +47,10 @@ best_gbmodel = grid.best_estimator_
 y_pred = best_gbmodel.predict(x_test)
 print("Score: ", best_gbmodel.score(x_test, y_test))
 
-# Best Parameters: {'learning_rate': 0.1, 'max_depth': 37, 'min_samples_leaf': 3, 'min_samples_split': 2, 'n_estimators': 200, 'random_state': 42, 'subsample': 0.4}
+# Best Parameters: {'learning_rate': 0.1, 'max_depth': 37, 'min_samples_leaf': 3, 'min_samples_split': 2, 
+# 'n_estimators': 200, 'random_state': 42, 'subsample': 0.4}
 # Score:  0.45714285714285713 (very low??)
+
+# NEW BEST PARAMETERS:Best Parameters: {'learning_rate': 0.1, 'max_depth': 38, 'max_features': 13, 'min_samples_leaf': 3, 
+# 'min_samples_split': 2, 'n_estimators': 200, 'random_state': 42, 'subsample': 1.0}
+# Score:  0.5508021390374331
