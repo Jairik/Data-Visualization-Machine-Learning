@@ -46,6 +46,7 @@ optimal_gb = GradientBoostingClassifier(learning_rate=.1, max_depth=38, max_feat
                                         min_samples_split=2, n_estimators=200, subsample=1.0, random_state=42)
 optimal_gb.fit(x_train, y_train)
 y_pred = optimal_gb.predict(x_test)
+print(optimal_gb.score(x_test, y_test))
 
 # Printing Classification Report
 print(classification_report(y_test, y_pred))  
@@ -57,6 +58,7 @@ fancycm.plot(cmap='Blues')
 plt.title("Confusion Matrix for Food Type Classification Model")
 plt.xlabel("Predicted Labels")
 plt.ylabel("True Labels")
+plt.xticks(ticks=range(20), labels=range(1,21))
 plt.show()
 
 ''' -- TESTING RESULTS --- 
