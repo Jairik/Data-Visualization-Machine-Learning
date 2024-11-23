@@ -6,5 +6,5 @@
 - ~~SVM~~
 - ~~KMeans Clustering~~
 - ~~Regression~~
-- PCA, Brief CVT
+- ~~PCA, Brief CVT~~
 - Standardization (Standard Scalar and whatnot)
