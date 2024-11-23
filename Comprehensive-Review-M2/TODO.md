@@ -3,7 +3,7 @@
 - ~~Scikit Learn Basics~~
 - ~~KNN~~
 - ~~DT~~
-- SVM
+- ~~SVM~~
 - KMeans Clustering
 - Regression
 - PCA, Brief CVT
