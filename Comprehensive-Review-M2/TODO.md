@@ -7,4 +7,4 @@
 - ~~KMeans Clustering~~
 - ~~Regression~~
 - ~~PCA, Brief CVT~~
-- Standardization (Standard Scalar and whatnot)
+- ~~Standardization (Standard Scalar and whatnot)~~
