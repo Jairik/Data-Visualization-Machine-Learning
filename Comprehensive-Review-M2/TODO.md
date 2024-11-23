@@ -4,7 +4,7 @@
 - ~~KNN~~
 - ~~DT~~
 - ~~SVM~~
-- KMeans Clustering
-- Regression
+- ~~KMeans Clustering~~
+- ~~Regression~~
 - PCA, Brief CVT
 - Standardization (Standard Scalar and whatnot)
