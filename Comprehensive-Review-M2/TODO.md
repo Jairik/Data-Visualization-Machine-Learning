@@ -1,6 +1,8 @@
 # TODO
-- DT
-- SMV
+- ~~Scikit Learn Basics~~
+- ~~KNN~~
+- ~~DT~~
+- SVM
 - KMeans Clustering
 - Regression
-- PCA
+- PCA, CVT?
