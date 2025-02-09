@@ -12,3 +12,5 @@
   - Cross Validation Test
   - Principle Component Analysis (PCA)
   - Overall ML Evaluation Process
+
+### See each folder for further documentation
